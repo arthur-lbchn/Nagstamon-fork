@@ -36,6 +36,34 @@ jobs:
       run: |
         python -m unittest tests/test_*.py
 
+  debian:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - run: /usr/bin/docker build -t build-nagstamon -f build/docker/Dockerfile-${{ github.job }} .
+      - run: /usr/bin/docker run -v ${{ github.workspace }}:/nagstamon build-nagstamon
+      - uses: actions/upload-artifact@v3
+        with:
+          path: build/*.deb
+          retention-days: 1
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-10.15
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - run: pip3 install --no-warn-script-location -r build/requirements/macos.txt
+      - run: cd ${{ github.workspace }}/build; python3 build.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+      - uses: actions/upload-artifact@v3
+        with:
+          path: build/*.dmg
+          retention-days: 1
+          if-no-files-found: error
+
   windows-32:
     # better depend on stable build image
     runs-on: windows-2019
@@ -89,7 +117,7 @@ jobs:
   repo-fedora:
     runs-on: ubuntu-latest
     # if not all are ready there might be trouble when downloading artifacts
-    needs: [debian, fedora-34, fedora-35, fedora-36, fedora-37, macos, windows-32, windows-64]
+    needs: [debian, macos, windows-32, windows-64]
     steps:
       # get binaries created by other jobs
       - uses: actions/download-artifact@v3
@@ -108,7 +136,7 @@ jobs:
 
   github-release:
     runs-on: ubuntu-latest
-    needs: [debian, fedora-34, fedora-35, fedora-36, fedora-37, macos, windows-32, windows-64]
+    needs: [debian, macos, windows-32, windows-64]
     steps:
       - uses: actions/download-artifact@v3
       - run: cd artifact && md5sum *agstamon* > md5sums.txt
