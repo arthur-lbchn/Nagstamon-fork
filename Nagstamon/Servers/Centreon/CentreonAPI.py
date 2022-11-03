@@ -358,7 +358,7 @@ class CentreonServer(GenericServer):
                     self.new_hosts[new_host].status_information = alerts["information"]
                     self.new_hosts[new_host].passiveonly = alerts["passive_checks"]
                     self.new_hosts[new_host].notifications_disabled = not alerts["notification_enabled"]
-                    self.new_hosts[new_host].flapping = alerts["flapping"]
+                    #self.new_hosts[new_host].flapping = alerts["flapping"]
                     self.new_hosts[new_host].acknowledged = alerts["acknowledged"]
                     self.new_hosts[new_host].scheduled_downtime = alerts["in_downtime"]
                     if "(S)" in alerts["tries"]:
