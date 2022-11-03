@@ -37,6 +37,21 @@ jobs:
       run: |
         python -m unittest tests/test_*.py
 
+  macos:
+    runs-on: macos-10.15
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - run: pip3 install --no-warn-script-location -r build/requirements/macos.txt
+      - run: cd ${{ github.workspace }}/build; python3 build.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+      - uses: actions/upload-artifact@v3
+        with:
+          path: build/*.dmg
+          retention-days: 1
+          if-no-files-found: error
+  
   windows-64:
     # better depend on stable build image
     runs-on: windows-2019
@@ -63,7 +78,7 @@ jobs:
 
   github-release:
     runs-on: ubuntu-latest
-    needs: [windows-64]
+    needs: [macos, windows-64]
     steps:
       - uses: actions/download-artifact@v3
       - run: cd artifact && md5sum *agstamon* > md5sums.txt
